@@ -1,0 +1,14 @@
+services:
+  order-service:
+    build: ./order-service
+    image: order-service:1.0
+    ports:
+      - "8081:8081"
+    depends_on:
+      - payment-service
+
+  payment-service:
+    build: ./payment-service
+    image: payment-service:1.0
+    ports:
+      - "8082:8082"
