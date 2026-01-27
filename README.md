@@ -209,5 +209,3 @@ Malob Chaudhuri
 Senior Backend Engineer (Java)
 
 
-If you want, I can also give you the **exact LinkedIn post text** for maximum reach.
-```
