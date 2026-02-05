@@ -1,211 +1,182 @@
 
-🚀 Enterprise Modernization POC – Cloud-Native Microservices
+### Enterprise Modernization POC – Phase 2
 
-This project is a **cloud-native microservices proof of concept (POC)** that demonstrates how a traditional synchronous business flow can be modernized into **resilient, containerized, and independently deployable services** using Spring Boot and Docker.
-
-The focus is on **real-world backend engineering practices**: service decomposition, resilience patterns, container orchestration, and production-ready design.
+**Event-Driven Microservices using Kafka**
 
 ---
 
- 🧩 Architecture Overview
+## 📌 Overview
 
-```
+This project demonstrates **enterprise modernization** by evolving a **synchronous microservices architecture** into an **event-driven system** using **Apache Kafka**.
 
-Client
-|
-v
-Order Service (8081)  --->  Payment Service (8082)
-|
-|--- Circuit Breaker (Resilience4j) + Fallback
+**Phase 2 focuses on:**
 
-```
+* Decoupling services
+* Asynchronous communication
+* Improved scalability and fault tolerance
 
 ---
 
- 🛠️ Technology Stack
+## 🏗 Architecture (Phase 2)
 
-### Backend
-- Java 17
-- Spring Boot 3
-- REST APIs
-- Spring Web
-- Spring Validation
-- Spring Test (JUnit, MockMvc)
-
-### Resilience & Reliability
-- Resilience4j (Circuit Breaker, Fallback)
-- Global exception handling
-
-### Containerization & Orchestration
-- Docker
-- Docker Compose
-
-### Build & Dev
-- Maven
-- Layered Docker images
-- Environment-based configuration
-
----
-
-## 📁 Project Structure
+### Before (Phase 1 – Synchronous)
 
 ```
+Order Service  --->  Payment Service
+        (REST call, tight coupling)
+```
 
-microservices/
-│
-├── docker-compose.yml
-│
-├── order-service/
-│   ├── src/
-│   ├── Dockerfile
-│   ├── pom.xml
-│   └── README.md
-│
-├── payment-service/
-│   ├── src/
-│   ├── Dockerfile
-│   ├── pom.xml
-│   └── README.md
-│
-└── docs/
-└── architecture.md
+### After (Phase 2 – Event-Driven)
 
+```
+Order Service  --->  Kafka Topic  --->  Payment Service
+        (publishes event)        (consumes event)
 ```
 
 ---
 
-## ⚙️ Services
+## 🔁 Event Flow
 
-### 🟦 Order Service
-- Port: **8081**
-- Validates orders
-- Calls Payment Service
-- Protected by circuit breaker
-- Returns fallback when payment fails
+1. Client creates an order via **Order Service**
+2. Order Service:
 
-**Endpoint**
+   * Validates request
+   * Publishes `OrderCreatedEvent` to Kafka
+3. Payment Service:
+
+   * Listens to Kafka topic
+   * Processes payment asynchronously
+4. Order Service responds immediately (non-blocking)
+
+---
+
+## 📦 Modules
+
+### 1️⃣ order-service
+
+* Produces Kafka events
+* Publishes `OrderCreatedEvent`
+* Validates business rules
+* Fully stateless and container-ready
+
+### 2️⃣ payment-service
+
+* Consumes Kafka events
+* Processes payment logic
+* Demonstrates consumer group handling
+
+### 3️⃣ common-events
+
+* Shared event contracts
+* Prevents class-mismatch and serialization issues
+* Used as a dependency by both services
+
+---
+
+## 🧾 Key Classes Introduced (Phase 2)
+
+### Order Service
+
+* `OrderService`
+* `OrderController`
+* `KafkaProducerConfig`
+* `OrderCreatedEvent` (from common-events)
+
+### Payment Service
+
+* `PaymentEventListener`
+* `PaymentRequest`
+* Kafka consumer configuration
+
+### Common
+
+* `OrderCreatedEvent`
+
+---
+
+## ⚙️ Technology Stack
+
+* Java 17
+* Spring Boot
+* Spring Kafka
+* Apache Kafka
+* Docker & Docker Compose
+* Maven
+* REST APIs
+
+---
+
+## 🐳 Running the Application
+
+```bash
+docker-compose up --build
 ```
 
+### Services
+
+* Order Service → `http://localhost:8081`
+* Payment Service → Kafka consumer
+* Kafka → Dockerized broker
+
+---
+
+## 📬 Sample Request
+
+```http
 POST /orders
-
-```
-
----
-
-### 🟩 Payment Service
-- Port: **8082**
-- Processes payment
-- Simulates success/failure
-
-**Endpoint**
-```
-
-POST /payments
-
-````
-
----
-
-## ▶️ How to Run the Project
-
-### 1️⃣ Build images
-```bash
-docker compose build
-````
-
-### 2️⃣ Start services
-
-```bash
-docker compose up
-```
-
-### 3️⃣ Verify containers
-
-```bash
-docker ps
-```
-
----
-
-## 🧪 Testing with Postman
-
-### Create Order
-
-**POST**
-
-```
-http://localhost:8081/orders
-```
-
-**Request Body**
-
-```json
 {
   "productName": "Laptop",
-  "amount": 45000
+  "amount": 50000
 }
 ```
 
----
-
-### Success Response
+### Response
 
 ```
-Order created & payment successful
+Order accepted and sent for payment processing
 ```
 
----
-
-### Fallback Response (Payment Service Down)
-
-```
-Order placed, but payment service is temporarily unavailable
-```
+Payment processing happens **asynchronously** via Kafka.
 
 ---
 
-## 🧯 Resilience Demonstration
+## 🎯 Enterprise Benefits Demonstrated
 
-1. Stop the `payment-service` container
-2. Send order request again
-3. Circuit breaker opens
-4. Fallback method is executed
-5. Order service remains available
-
-This demonstrates **failure isolation and system resilience**.
-
----
-
-## 🎯 Why This POC Matters
-
-This project demonstrates:
-
-* Microservice decomposition
-* Synchronous service communication
-* Circuit breaker pattern
-* Container-first development
-* Independent service deployment
-* Cloud-native readiness
-
-It reflects **how modern backend systems are built in real production environments**.
+* Loose coupling between services
+* Non-blocking architecture
+* Improved scalability
+* Fault tolerance
+* Cloud-native, container-first design
+* Event-driven architecture (EDA)
 
 ---
 
-## 🚧 Roadmap (Next Phases)
+## 🚀 Phase 2 Outcome
 
-* Kafka for async communication
-* API Gateway
-* OpenTelemetry tracing
-* Centralized config service
-* Kubernetes deployment
-* CI/CD with GitHub Actions
-* Observability dashboards
+✔ Successfully migrated from synchronous REST calls to Kafka-based event processing
+✔ Implemented shared event contracts
+✔ Verified producer and consumer via Docker logs
+✔ Production-ready enterprise pattern
 
 ---
 
- 👨‍💻 Author
+## 🔜 Next Steps (Phase 3 Ideas)
 
-Malob Chaudhuri
-Senior Backend Engineer (Java)
+* Retry & Dead Letter Topics (DLQ)
+* Schema Registry
+* Exactly-once semantics
+* Observability (metrics + tracing)
+
+---
+
+## 📌 Author
+
+**Malob Chaudhuri**
+Senior Java / Spring Boot Developer
+Enterprise Modernization | Microservices | Kafka
+
+
+
+
 
 
